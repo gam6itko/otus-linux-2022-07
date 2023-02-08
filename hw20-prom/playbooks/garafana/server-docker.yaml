@@ -1,0 +1,44 @@
+# https://grafana.com/docs/grafana/latest/setup-grafana/configure-docker/
+
+---
+- name: Grafana server setup
+  hosts: main
+  tasks:
+    - name: Ensure config directory exists
+      file:
+        path: /srv/grafana
+        state: directory
+        mode: 0776
+      become: true
+
+    - name: Ensure data directory exists
+      file:
+        path: /srv/grafana/data
+        state: directory
+        mode: 0776
+      become: true
+
+#    - name: Place config
+#      template:
+#        src: template/grafana.ini.j2
+#        dest: /srv/grafana/grafana.ini
+#      become: true
+#      notify: restart-grafana-server
+
+    - name: Create grafana docker container
+      community.docker.docker_container:
+        name: grafana
+        image: grafana/grafana
+        state: started
+        restart_policy: unless-stopped
+        network_mode: host
+        volumes:
+          - /srv/grafana/data:/var/lib/grafana
+#          - /srv/grafana/grafana.ini:/etc/grafana/grafana.ini
+
+  handlers:
+    - name: restart-grafana-server
+      community.docker.docker_container:
+        name: grafana
+        restart: true
+      become: true

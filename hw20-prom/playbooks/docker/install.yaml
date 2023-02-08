@@ -1,0 +1,85 @@
+# https://docs.docker.com/engine/install/centos/
+# https://docs.docker.com/engine/install/ubuntu/
+# https://docs.docker.com/engine/install/linux-postinstall/
+
+---
+- name: Play docker
+  hosts: docker
+  tasks:
+    - name: Install pip module `docker`
+      pip:
+        name: docker
+        state: present
+      become: true
+
+    - name: Install requirements for RedHat family
+      when: ansible_os_family == "RedHat"
+      block:
+        - name: Remove podman
+          yum:
+            pkg:
+              - podman
+              - buildah
+            state: absent
+            update_cache: true
+          become: true
+
+        - name: Download docker repo
+          get_url:
+            url: https://download.docker.com/linux/centos/docker-ce.repo
+            dest: /etc/yum.repos.d/docker-ce.repo
+          become: true
+
+        - name: Install docker
+          yum:
+            pkg:
+              - docker-ce
+              - docker-ce-cli
+              - containerd.io
+          become: true
+
+        - name: Running docker service
+          service:
+            name: docker
+            state: started
+          become: true
+
+    - name: Install requirements for Debian family
+      when: ansible_os_family == "Debian"
+      block:
+        - name: Add Docker GPG apt Key
+          apt_key:
+            url: https://download.docker.com/linux/ubuntu/gpg
+            state: present
+
+        - name: Add Docker Repository
+          apt_repository:
+            repo: deb https://download.docker.com/linux/ubuntu focal stable
+            state: present
+
+        - name: Install docker
+          apt:
+            name: docker
+            state: latest
+            update_cache: true
+          become: true
+
+    - name: Ensure group "docker" exists
+      group:
+        name: docker
+        state: present
+      become: true
+
+    - name: Adding current user "{{ ansible_user_id }}" to group "docker"
+      user:
+        name: "{{ ansible_user_id }}"
+        groups: docker
+        append: true
+      become: true
+
+    - name: Ensure docker service is running
+      service:
+        name: docker
+        state: started
+        enabled: true
+      become: true

@@ -1,0 +1,19 @@
+From: ws_status@mail.com
+To: $EMAIL
+Subject: Server report from ${LAST_RUN_DT} to ${EXECUTE_DT}
+Here your web-server report!!
+
+Date from: ${LAST_RUN_DT}
+Date to:   ${EXECUTE_DT}
+
+Access IP list:
+$IP_LIST
+
+Access URL list:
+$URL_LIST
+
+HTTP codes list:
+$HTTP_CODE_LIST
+
+Error list:
+$ERROR_LIST

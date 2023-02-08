@@ -1,0 +1,9 @@
+polkit.addRule(function (action, subject) {
+  if (
+    action.lookup('unit') === 'podman.service' &&
+    action.lookup('verb') === 'restart' &&
+    subject.user === 'carl'
+  ) {
+    return polkit.Result.YES
+  }
+});

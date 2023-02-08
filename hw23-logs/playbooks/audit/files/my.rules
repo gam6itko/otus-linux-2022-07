@@ -1,0 +1,6 @@
+-w /etc/audit/auditd.conf -p wa
+-w /etc/audit/audit.rules -p wa
+
+-w /etc/nginx/nginx.conf -p wa
+-w /etc/nginx/conf.d/ -p wa
+-w /etc/nginx/sites-enabled/ -p wa

@@ -1,0 +1,13 @@
+CREATE USER IF NOT EXISTS 'php_node'@'{{ php_node.host }}' IDENTIFIED BY 'pass';
+
+CREATE DATABASE IF NOT EXISTS `otus`;
+
+GRANT ALL PRIVILEGES ON `otus`.* TO 'php_node'@'{{ php_node.host }}';
+
+CREATE TABLE IF NOT EXISTS `otus`.`dictionary`
+(
+    `id`   int          NOT NULL AUTO_INCREMENT,
+    `name` varchar(255) NOT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE = InnoDB  DEFAULT CHARSET = utf8mb4;
+

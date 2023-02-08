@@ -1,0 +1,31 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# export VAGRANT_EXPERIMENTAL="disks"
+
+Vagrant.configure("2") do |config|
+
+  config.vm.define "client" do |node|
+    node.vm.network "private_network", ip: "192.168.57.10"
+    node.vm.box = 'ubuntu/jammy64'
+    node.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+    end
+
+    node.vm.provision "shell", name: "prepare", path: "prepare.sh"
+    node.vm.provision "shell", name: "prepare", path: "client_init.sh"
+  end
+
+  config.vm.define "backup_server" do |node|
+    node.vm.network "private_network", ip: "192.168.57.20"
+    node.vm.box = 'ubuntu/jammy64'
+    node.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+    end
+
+    node.vm.provision "shell", name: "prepare", path: "prepare.sh"
+    node.vm.provision "shell", name: "init", path: "backup_server_init.sh"
+
+    node.vm.disk :disk, name: "backup", size: "2GB"
+  end
+
+end

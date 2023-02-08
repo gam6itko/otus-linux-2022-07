@@ -1,0 +1,27 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+require 'open3'
+require 'fileutils'
+
+Vagrant.configure("2") do |config|
+
+  config.vm.define "nginx_node" do |node|
+    node.vm.box = 'centos/7'
+    node.vm.host_name = 'nginx-node'
+    node.vm.network :private_network, type: "dhcp"
+  end
+
+  config.vm.define "php_node" do |node|
+    node.vm.box = 'ubuntu/jammy64'
+    node.vm.host_name = 'php-node'
+    node.vm.network :private_network, type: "dhcp"
+  end
+
+  config.vm.define "mysql_node" do |node|
+    node.vm.box = 'almalinux/8'
+    node.vm.host_name = 'mysql-node'
+    node.vm.network :private_network, type: "dhcp"
+  end
+
+end

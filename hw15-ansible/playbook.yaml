@@ -1,0 +1,4 @@
+---
+- import_playbook: playbooks/nginx.yaml
+- import_playbook: playbooks/mysql.yaml
+- import_playbook: playbooks/php.yaml

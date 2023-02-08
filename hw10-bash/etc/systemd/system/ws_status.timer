@@ -1,0 +1,8 @@
+[Unit]
+Description=Run ws_status script every day
+[Timer]
+OnUnitActiveSec=86400
+#OnUnitActiveSec=30
+Unit=ws_status.service
+[Install]
+WantedBy=multi-user.target

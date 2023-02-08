@@ -1,0 +1,27 @@
+Vagrant.configure("2") do |config|
+
+   config.vm.define "web" do |node|
+    node.vm.network "private_network", ip: "192.168.56.23"
+    node.vm.box = 'ubuntu/jammy64'
+    #node.vm.network :private_network, type: "dhcp"
+    node.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+    end
+    node.vm.provision "ansible" do |ansible|
+      ansible.playbook = "web_play.yaml"
+    end
+  end
+
+  config.vm.define "log" do |node|
+    node.vm.network "private_network", ip: "192.168.56.24"
+    node.vm.box = 'ubuntu/jammy64'
+    #node.vm.network :private_network, type: "dhcp"
+    node.vm.provider "virtualbox" do |vb|
+      vb.memory = "6144"
+    end
+    node.vm.provision "ansible" do |ansible|
+      ansible.playbook = "log_play.yaml"
+    end
+  end
+
+end

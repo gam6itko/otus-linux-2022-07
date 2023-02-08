@@ -1,0 +1,52 @@
+---
+
+- name: server
+  hosts: server
+  become: yes
+  tasks:
+    - name: install epel-release
+      yum:
+        update_cache: true
+        name:  epel-release
+
+    - name: install packages
+      yum:
+        name:
+          - openvpn
+          - iperf3
+          - tcpdump
+
+    - name: Disable SELinux
+      ansible.posix.selinux:
+        state: disabled
+        update_kernel_param: true
+
+    - name: generating openvpn keys
+      shell: "openvpn --genkey --secret /etc/openvpn/static.key"
+
+#    - name: copy static.key to host
+#      copy:
+#        src: /etc/openvpn/static.key
+#        dest: /vagrant/openvpn_static.key
+#        remote_src: true
+
+    - name: copy conf
+      copy:
+        src: ./files/server_openvpn.conf
+        dest: /etc/openvpn/server.conf
+      notify: openvpn-restart
+
+    - name: start openvpn service
+      service:
+        name: openvpn@server
+        state: started
+        enabled: true
+
+  handlers:
+    - name: openvpn-restart
+      service:
+        name: openvpn@server
+        state: restarted
+        enabled: true
+
+

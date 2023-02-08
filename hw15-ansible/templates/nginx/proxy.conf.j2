@@ -1,0 +1,13 @@
+upstream php_node {
+    server {{ php_node.host }}:{{ php_node.http_port }};
+}
+
+
+server {
+    listen {{ nginx_node.http_port }};
+
+    location / {
+        proxy_pass http://php_node;
+    }
+
+}

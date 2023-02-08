@@ -1,0 +1,43 @@
+---
+- name: nginx setup
+  hosts: nginx_host
+  tasks:
+      - name: add nginx.repo
+        when: ansible_os_family == "RedHat"
+        copy:
+          src: ../files/nginx.repo
+          dest: /etc/yum.repos.d/nginx.repo
+        become: true
+
+      - name: Install nginx with yum
+        when: ansible_os_family == "RedHat"
+        yum:
+          update_cache: true
+          name: nginx
+          state: present
+        become: true
+
+      - name: Nginx service is running
+        service:
+          name: nginx
+          state: started
+        become: true
+
+      - name: Copy proxy configuration file
+        template:
+          src: ../templates/nginx/proxy.conf.j2
+          dest: /etc/nginx/conf.d/proxy.conf
+          owner: nginx
+        become: true
+
+      - name: Verify Nginx config
+        become: yes
+        command: nginx -t
+        notify: Restart Nginx
+
+  handlers:
+    - name: Restart Nginx
+      become: true
+      service:
+        name: nginx
+        state: restarted

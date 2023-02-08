@@ -1,0 +1,7 @@
+---
+- import_playbook: playbooks/python.yaml
+- import_playbook: playbooks/docker/install.yaml
+- import_playbook: playbooks/prometheus/node-exporter.yaml
+- import_playbook: playbooks/prometheus/server-docker.yaml
+- import_playbook: playbooks/prometheus/alertmanager.yaml
+- import_playbook: playbooks/garafana/server-docker.yaml

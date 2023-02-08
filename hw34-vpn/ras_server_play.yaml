@@ -1,0 +1,59 @@
+---
+
+- name: ras_server
+  hosts: ras_server
+  become: yes
+  tasks:
+    - name: install epel-release
+      yum:
+        update_cache: true
+        name:  epel-release
+
+    - name: install packages
+      yum:
+        name:
+          - openvpn
+          - easy-rsa
+          - tcpdump
+
+    - name: set up forward packages across routers
+      sysctl:
+        name: net.ipv4.conf.all.forwarding
+        value: '1'
+        state: present
+
+    - name: Create a symbolic link for easyrsa
+      ansible.builtin.file:
+        src: /usr/share/easy-rsa/3/easyrsa
+        dest: /usr/bin/easyrsa
+        state: link
+
+    - name: Disable SELinux
+      ansible.posix.selinux:
+        state: disabled
+        update_kernel_param: true
+
+    - name: copy conf
+      copy:
+        src: ./files/ras_server/openvpn.server.conf
+        dest: /etc/openvpn/server.conf
+      notify: openvpn-restart
+
+    - name: ras_server_configure
+      script:
+        cmd: ./files/ras_server/configure.sh
+        creates: /etc/openvpn/pki
+
+    - name: start openvpn service
+      service:
+        name: openvpn@server
+        state: started
+        enabled: true
+
+  handlers:
+    - name: openvpn-restart
+      service:
+        name: openvpn@server
+        state: restarted
+
+

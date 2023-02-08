@@ -1,0 +1,4 @@
+---
+- import_playbook: playbooks/docker/install.yaml
+- import_playbook: playbooks/docker/warmup.yaml
+- import_playbook: playbooks/elk/install.yaml

@@ -1,0 +1,39 @@
+---
+- name: Play auditd
+  hosts: web
+  tasks:
+    - name: Install nginx on RHEL
+      when: ansible_os_family == "RedHat"
+      yum:
+        update_cache: true
+        name: auditd
+        state: present
+      become: true
+
+    - name: Install nginx on Debian
+      when: ansible_os_family == "Debian"
+      apt:
+        update_cache: true
+        name: auditd
+        state: present
+      become: true
+
+    - name: copy my rules
+      copy:
+        src: ./files/my.rules
+        dest: /etc/audit/rules.d/my.rules
+      become: true
+      notify: auditd-service-restart
+
+    - name: Ensure audit running
+      service:
+        name: auditd
+        state: started
+      become: true
+
+  handlers:
+    - name: auditd-service-restart
+      service:
+        name: auditd.service
+        state: restarted
+      become: true

@@ -1,0 +1,14 @@
+servers:
+  vars:
+    ansible_ssh_user: vagrant
+  hosts:
+    pxe-server:
+      ansible_host: 127.0.0.1
+      ansible_port: 2220
+      ansible_user: vagrant
+      ansible_ssh_private_key_file: ../.vagrant/machines/pxe-server/virtualbox/private_key
+    pxe-client:
+      ansible_host: 127.0.0.1
+      ansible_port: 2222
+      ansible_user: vagrant
+      ansible_ssh_private_key_file: ../.vagrant/machines/pxe-client/virtualbox/private_key

@@ -1,0 +1,9 @@
+---
+nginx_node:
+  host: 192.168.56.59
+  http_port: 8080
+php_node:
+  host: 192.168.56.60
+  http_port: 80
+mysql_node:
+  host: 192.168.56.61

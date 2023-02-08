@@ -1,0 +1,46 @@
+---
+
+- name: client
+  hosts: client
+  become: yes
+  tasks:
+    - name: install epel-release
+      yum:
+        update_cache: true
+        name:  epel-release
+
+    - name: install packages
+      yum:
+        name:
+          - openvpn
+          - iperf3
+
+    - name: Disable SELinux
+      ansible.posix.selinux:
+        state: disabled
+        update_kernel_param: true
+
+    - name: copy conf
+      copy:
+        src: ./files/client_openvpn.conf
+        dest: /etc/openvpn/server.conf
+      notify: openvpn-restart
+
+    - name: touch static.key
+      ansible.builtin.file:
+        path: /etc/openvpn/static.key
+        state: touch
+
+    - name: start openvpn service
+      service:
+        name: openvpn@server
+        state: started
+        enabled: true
+
+  handlers:
+    - name: openvpn-restart
+      service:
+        name: openvpn@server
+        state: restarted
+        enabled: true
+

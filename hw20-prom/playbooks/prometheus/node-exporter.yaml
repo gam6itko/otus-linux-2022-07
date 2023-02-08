@@ -1,0 +1,59 @@
+# https://prometheus.io/docs/guides/node-exporter/
+# https://devopscube.com/monitor-linux-servers-prometheus-node-exporter/
+
+---
+- name: Prometheus node_exporter setup
+  hosts: nodes
+  vars:
+    ne_v: 1.4.0
+  tasks:
+    - name: Populate service facts
+      ansible.builtin.service_facts:
+
+    - name: Add user 'node_exporter'
+      user:
+        name: node_exporter
+        create_home: false
+        shell: /bin/false
+      become: true
+
+    - debug:
+        var: ansible_facts.services.node_exporter
+
+    - when: ansible_facts.services.node_exporter is not defined
+      block:
+        - name: Download archive
+          get_url:
+            url: "https://github.com/prometheus/node_exporter/releases/download/v{{ ne_v }}/node_exporter-{{ ne_v }}.linux-amd64.tar.gz"
+            dest: "/tmp/node_exporter-{{ ne_v }}.linux-amd64.tar.gz"
+          become: true
+
+        - name: Unarchive a file that needs to be downloaded
+          unarchive:
+            src: "/tmp/node_exporter-{{ ne_v }}.linux-amd64.tar.gz"
+            dest: /tmp
+            remote_src: yes
+          become: true
+
+        - name: Copy to bin
+          copy:
+            src: "/tmp/node_exporter-{{ ne_v }}.linux-amd64/node_exporter"
+            dest: /usr/local/bin/
+            mode: 0755
+            remote_src: true
+          become: true
+
+    - name: Place service config file
+      copy:
+        src: files/node_exporter.service
+        dest: /etc/systemd/system/node_exporter.service
+      become: true
+
+    - name: Ensure node_export.service running
+      service:
+        name: node_exporter.service
+        state: started
+        enabled: true
+      become: true
+
+

@@ -1,0 +1,50 @@
+Vagrant.configure("2") do |config|
+
+   config.vm.define "inetRouter" do |node|
+    node.vm.host_name = 'inetRouter'
+
+    node.vm.network "private_network", ip: "192.168.61.10", virtualbox__intnet: true
+    node.vm.box = "almalinux/8"
+    node.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+    end
+
+    node.vm.provision "ansible" do |ansible|
+      ansible.playbook = "inet_router_play.yaml"
+    end
+  end
+
+  config.vm.define "centralRouter" do |node|
+    node.vm.host_name = "centralRouter"
+
+    # порт для проверки что nginx действительно работает
+    #node.vm.network "forwarded_port", guest: 80, host: 8088
+
+    node.vm.network "private_network", ip: "192.168.61.20", virtualbox__intnet: true
+    node.vm.box = "almalinux/8"
+    node.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+    end
+
+    node.vm.provision "ansible" do |ansible|
+      ansible.playbook = "central_router_play.yaml"
+    end
+  end
+
+  config.vm.define "inetRouter2" do |node|
+    node.vm.host_name = 'inetRouter2'
+
+    node.vm.network "private_network", ip: "192.168.56.120"
+    node.vm.network "private_network", ip: "192.168.61.30", virtualbox__intnet: true
+
+    node.vm.box = "almalinux/8"
+    node.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+    end
+
+    node.vm.provision "ansible" do |ansible|
+      ansible.playbook = "inet_router2_play.yaml"
+    end
+  end
+
+end

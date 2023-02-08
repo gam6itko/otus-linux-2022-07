@@ -1,0 +1,4 @@
+---
+- import_playbook: playbooks/audit/audit.yaml
+- import_playbook: playbooks/nginx.yaml
+- import_playbook: playbooks/filebeat/filebeat.yaml

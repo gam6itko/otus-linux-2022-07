@@ -1,0 +1,38 @@
+---
+- name: Set up inetRouter2
+  hosts: inetRouter2
+  become: yes
+  tasks:
+    # Set ip forwarding on in /proc and in the sysctl file and reload if necessary
+    - ansible.posix.sysctl:
+        name: net.ipv4.conf.all.forwarding
+        value: '1'
+        sysctl_set: true
+        state: present
+        reload: true
+
+    - name: Stop firewalld
+      service:
+        name: firewalld
+        state: stopped
+
+    - name: install iptables-services
+      yum:
+        name: iptables-services
+        state: present
+
+    - name: Start iptables service
+      service:
+        name: iptables
+        state: started
+        enabled: true
+
+    # This will load a state from a file, with a rollback in case of access loss
+    - name: restore firewall state from a file
+      community.general.iptables_state:
+        path: /vagrant/files/fwd_nginx.rules
+        state: restored
+      async: "{{ ansible_timeout }}"
+      poll: 0
+
+

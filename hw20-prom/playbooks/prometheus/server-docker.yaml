@@ -1,0 +1,54 @@
+# https://prometheus.io/docs/prometheus/latest/installation/
+# https://computingforgeeks.com/install-prometheus-server-on-debian-ubuntu-linux/
+
+---
+- name: Prometheus server setup
+  hosts: main
+  tasks:
+    - name: Ensure config directory exists
+      file:
+        path: /srv/prometheus
+        state: directory
+        mode: 0776
+      become: true
+
+    - name: Ensure data directory exists
+      file:
+        path: /srv/prometheus/data
+        state: directory
+        mode: 0777
+      become: true
+
+    - name: Place config
+      copy:
+        src: files/prometheus.yml
+        dest: /srv/prometheus/prometheus.yml
+      become: true
+      notify: restart-prometheus-server
+
+    - name: Place config. rules.yml
+      copy:
+        src: files/rules.yml
+        dest: /srv/prometheus/rules.yml
+      become: true
+      notify: restart-prometheus-server
+
+    - name: Create a docker container
+      community.docker.docker_container:
+        name: prometheus
+        image: prom/prometheus
+        state: started
+        restart_policy: unless-stopped
+        network_mode: host
+        volumes:
+          - /srv/prometheus/data:/prometheus
+          - /srv/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+          - /srv/prometheus/rules.yml:/etc/prometheus/rules.yml
+
+  handlers:
+    - name: restart-prometheus-server
+      community.docker.docker_container:
+        name: prometheus
+#        image: prom/prometheus
+        restart: true
+      become: true

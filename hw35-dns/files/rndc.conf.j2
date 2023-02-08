@@ -1,0 +1,24 @@
+key "rndc-key" {
+    algorithm hmac-md5;
+    secret "GrtiE9kz16GK+OKKU/qJvQ==";
+};
+
+{% if ansible_hostname == 'client1' %}
+key "client1-key" {
+    algorithm hmac-sha256;
+    secret "EWob8DMdMcl2I4+eCMnp8i924VWsOOo53RUHaFCKIyg=";
+};
+{% endif %}
+
+{% if ansible_hostname == 'client2' %}
+key "client2-key" {
+    algorithm hmac-sha256;
+    secret "JJGGs8alxw/TPZi9v6bLS+o9yj6tNcPCEdv18FsxMfw=";
+};
+{% endif %}
+
+options {
+    default-key "rndc-key";
+    default-server 192.168.50.10;
+};
+

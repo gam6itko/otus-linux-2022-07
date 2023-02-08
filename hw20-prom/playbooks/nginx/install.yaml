@@ -1,0 +1,29 @@
+---
+- name: Nginx setup
+  tasks:
+    - name: Install nginx on Redhat based os
+      when: ansible_os_family == "Redhat"
+      yum:
+        name: nginx
+        update_cache: true
+      become: true
+
+    - name: Install nginx on Debian based os
+      when: ansible_os_family == "Debian"
+      apt:
+        name: nginx
+        update_cache: true
+      become: true
+
+    - name: Ensure nginx running
+      service:
+        name: nginx
+        state: started
+      become: true
+
+    - name: Install prometheus on Debian based os
+      when: ansible_os_family == "Debian"
+      yum:
+        name: prometheus
+        update_cache: true
+      become: true

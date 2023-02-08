@@ -1,0 +1,12 @@
+---
+- name: "Check that the docker-image/{{ file }} file exists"
+  stat:
+    path: "/vagrant/docker-image/{{ file }}"
+  register: reg
+
+- name: "Import docker image {{ reg.stat.path }}"
+  command: "docker load -i {{ reg.stat.path }}"
+  when: reg.stat.exists
+  become: true
+
+

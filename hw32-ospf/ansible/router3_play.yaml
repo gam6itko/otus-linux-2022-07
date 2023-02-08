@@ -1,0 +1,21 @@
+---
+- import_playbook: playbooks/router_prepare.yaml
+
+- name: OSPF
+  hosts: router3
+  become: yes
+  tasks:
+    # Копируем файл frr.conf на хосты, указываем владельца и права
+    - name: set up OSPF
+      copy:
+        src: ./files/router3/frr.conf
+        dest: /etc/frr/frr.conf
+        owner: frr
+        group: frr
+        mode: 0640
+    # Перезапускам FRR и добавляем в автозагрузку
+    - name: restart FRR
+      service:
+        name: frr
+        state: restarted
+        enabled: true

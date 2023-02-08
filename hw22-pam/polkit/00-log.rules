@@ -1,0 +1,10 @@
+polkit.addRule(function (action, subject) {
+  polkit.log("============================");
+  polkit.log("action=" +  action);
+  polkit.log("subject=" + subject);
+  polkit.log("----------------------------");
+  polkit.log("action.unit=" +  action.lookup('unit'));
+  polkit.log("action.verb=" +  action.lookup('verb'));
+  polkit.log("subject.user=" +  subject.user);
+  polkit.log("============================");
+});

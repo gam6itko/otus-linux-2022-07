@@ -1,0 +1,7 @@
+[Unit]
+Description=ws_status
+Requires=nginx.service
+Requires=sendmail.service
+[Service]
+Type=oneshot
+ExecStart=/opt/ws_status.sh

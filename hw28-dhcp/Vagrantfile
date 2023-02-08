@@ -1,0 +1,57 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# export VAGRANT_EXPERIMENTAL="disks"
+
+Vagrant.configure("2") do |config|
+
+  config.vm.define "pxe-server" do |server|
+    server.vm.host_name = 'pxe-server'
+    server.vm.box = 'centos/8'
+
+    server.vm.network "forwarded_port", guest: 22, host: 2220, id: "ssh"
+    server.vm.network "forwarded_port", guest: 80, host: 8080
+
+    server.vm.disk :disk, size: "40GB", primary: true
+
+    server.vm.network :private_network, ip: "192.168.60.20", virtualbox__intnet: 'pxe-net'
+
+    server.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+      vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+    end
+
+    # Скачаем предварительно iso на cслучай пересоздания VM
+    # server.vm.provision "file", source: "~/Downloads/CentOS-8.5.2111-x86_64-dvd1.iso", destination: "/home/vagrant/CentOS-8.5.2111-x86_64-dvd1.iso"
+  end
+
+
+  # config used from this
+  # https://github.com/eoli3n/vagrant-pxe/blob/master/client/Vagrantfile
+  config.vm.define "pxe-client" do |client|
+    client.vm.host_name = 'pxe-client'
+    client.vm.box = 'centos/8.4'
+
+    client.vm.network "forwarded_port", guest: 22, host: 2222, id: "ssh"
+
+    client.vm.disk :disk, size: "30GB", primary: true
+
+    client.vm.network :private_network, ip: "192.168.60.21", virtualbox__intnet: 'pxe-net'
+    client.vm.provider :virtualbox do |vb|
+      vb.gui = true
+      vb.memory = "2048"
+      vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      vb.customize [
+          'modifyvm', :id,
+          '--nic1', 'intnet',
+          '--intnet1', 'pxe-net',
+          '--nic2', 'nat',
+          '--boot1', 'net',
+          '--boot2', 'none',
+          '--boot3', 'none',
+          '--boot4', 'none'
+        ]
+      vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+    end
+  end
+
+end

@@ -1,0 +1,45 @@
+---
+- name: Play filebeat
+  hosts: web
+  tasks:
+    - name: "Install filebeat from already downloaded package"
+      when: ansible_os_family == "Debian"
+      block:
+        - name: "Checks we have downloaded filebeat deb package"
+          stat:
+            path: "/vagrant/dl/filebeat-8.5.3-amd64.deb"
+          register: reg
+
+        - name: "install filebeat"
+          when: reg.stat.exists
+          apt:
+            deb: /vagrant/dl/filebeat-8.5.3-amd64.deb
+          become: true
+
+    - name: enable filebeat modules
+      command: filebeat modules enable nginx
+      become: true
+
+    - name: Copy main config file
+      copy:
+        src: ./files/filebeat.yml
+        dest: /etc/filebeat/filebeat.yml
+      become: true
+
+    - name: Copy audit module config file
+      copy:
+        src: ./files/modules.d/auditd.yml
+        dest: /etc/filebeat/modules.d/auditd.yml
+      become: true
+
+    - name: "Copy {{ file }} module config file"
+      copy:
+        src: "./files/modules.d/{{ file }}"
+        dest: "/etc/filebeat/modules.d/{{ file }}"
+      loop:
+        - auditd.yml
+        - nginx.yml
+      loop_control:
+        loop_var: file
+      become: true
+

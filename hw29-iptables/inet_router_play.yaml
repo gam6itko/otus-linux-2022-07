@@ -1,0 +1,23 @@
+---
+- name: Set up inetRouter
+  hosts: inetRouter
+  become: yes
+  tasks:
+    - name: install iptables-services
+      yum:
+        name: iptables-services
+        state: present
+
+    - name: Start iptables service
+      service:
+        name: iptables
+        state: started
+        enabled: true
+
+    # This will load a state from a file, with a rollback in case of access loss
+    - name: restore firewall state from a file
+      community.general.iptables_state:
+        path: /vagrant/files/port_knock.rules
+        state: restored
+      async: "{{ ansible_timeout }}"
+      poll: 0

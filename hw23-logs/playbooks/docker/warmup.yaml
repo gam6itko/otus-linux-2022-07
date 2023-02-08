@@ -1,0 +1,13 @@
+---
+- name: Play docker-image warmup
+  hosts: log
+  tasks:
+
+    - name: Docker image load
+      include_tasks: image-load.inc.yaml
+      loop:
+        - elasticsearch.image
+        - kibana.image
+        - logstash.image
+      loop_control:
+        loop_var: file

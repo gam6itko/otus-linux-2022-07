@@ -1,0 +1,25 @@
+---
+- name: Play nginx conf
+  hosts: web
+  tasks:
+    - name: Install nginx on RHEL
+      when: ansible_os_family == "RedHat"
+      yum:
+        update_cache: true
+        name: nginx
+        state: present
+      become: true
+
+    - name: Install nginx on Debian
+      when: ansible_os_family == "Debian"
+      apt:
+        update_cache: true
+        name: nginx
+        state: present
+      become: true
+
+    - name: Ensure nginx running
+      service:
+        name: nginx
+        state: started
+      become: true

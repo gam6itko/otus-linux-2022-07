@@ -1,0 +1,47 @@
+---
+- name: php setup
+  hosts: php_host
+  tasks:
+      - name: Install php with yum
+        when: ansible_os_family == "Debian"
+        apt:
+            name: apache2
+            state: present
+        become: true
+
+      - name: Ensure apache2 service running
+        service:
+          name: apache2
+          state: started
+
+      - name: Install php with apt
+        when: ansible_os_family == "Debian"
+        apt:
+            update_cache: true
+            name:
+              - php>=8.0
+              - php-pdo
+              - php-mysql
+              - php-mbstring
+              - php-xml
+            state: present
+        become: true
+
+      - name: Install php with yum
+        when: ansible_os_family == "RedHat"
+        yum:
+            name: php>=8.0
+            state: present
+        become: true
+
+      - name: Copy php script
+        copy:
+          src: ../files/php/tables.php
+          dest: /var/www/html/tables.php
+        become: true
+      - name: Copy env file
+        template:
+          src: ../files/php/mysql_host.j2
+          dest: /var/www/mysql_host
+        become: true
+

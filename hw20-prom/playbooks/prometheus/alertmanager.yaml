@@ -1,0 +1,47 @@
+# https://losst.pro/nastrojka-alertmanager-prometheus
+# https://awesome-prometheus-alerts.grep.to/rules.html
+
+---
+- name: Prometheus alertmanager setup
+  hosts: main
+  tasks:
+    - name: Ensure config directory exists
+      file:
+        path: /srv/alertmanager
+        state: directory
+        mode: 0776
+      become: true
+
+    - name: Ensure data directory exists
+      file:
+        path: /srv/alertmanager/data
+        state: directory
+        mode: 0777
+        recurse: true
+      become: true
+
+    - name: Place config. alertmanager.yml
+      template:
+        src: template/alertmanager.yml.j2
+        dest: /srv/alertmanager/alertmanager.yml
+        mode: 0755
+      become: true
+      notify: restart-alertmanager
+
+    - name: Create a docker container
+      community.docker.docker_container:
+        name: alertmanager
+        image: prom/alertmanager
+        state: started
+        restart_policy: unless-stopped
+        network_mode: host
+        volumes:
+#          - /srv/prometheus/data:/prometheus
+          - /srv/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+
+  handlers:
+    - name: restart-alertmanager
+      community.docker.docker_container:
+        name: alertmanager
+        restart: true
+      become: true

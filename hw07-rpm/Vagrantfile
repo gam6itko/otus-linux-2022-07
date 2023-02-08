@@ -1,0 +1,38 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  config.vm.define "server" do |server|
+    config.vm.box = 'almalinux/8'
+
+    server.vm.host_name = 'server'
+    server.vm.network :private_network, ip: '192.168.56.6'
+
+
+    server.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+      vb.cpus = 4
+      vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+    end
+
+    server.vm.provision "shell", name: "init", path: "provision/server_init.sh"
+    server.vm.provision "shell", name: "repo", path: "provision/server_repo.sh"
+  end
+
+
+  config.vm.define "client" do |client|
+    client.vm.box = 'almalinux/8'
+    client.vm.host_name = 'client'
+    client.vm.network :private_network, ip: '192.168.56.7'
+    client.vm.provider :virtualbox do |vb|
+      vb.memory = "1024"
+      vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+    end
+
+    client.vm.provision "shell", name: "init", path: "provision/client_init.sh"
+    client.vm.provision "shell", name: "init", path: "provision/client_repo.sh"
+
+  end
+
+end

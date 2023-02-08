@@ -1,0 +1,148 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    #Установка пакетов bind, bind-utils и ntp
+    - name: install packages
+      yum:
+        name:
+          - bind
+          - bind-utils
+          - ntp
+        state: latest
+    #Копирование файла named.zonetransfer.key на хосты с правами 0644
+    #Владелец файла — root, група файла — named
+    - name: copy transferkey to all servers and the client
+      copy:
+        src: named.zonetransfer.key
+        dest: /etc/named.zonetransfer.key
+        owner: root
+        group: named
+        mode: 0644
+
+    - name: stop and disable chronyd
+      service:
+        name: chronyd
+        state: stopped
+        enabled: false
+
+    - name: start and enable ntpd
+      service:
+        name: ntpd
+        state: started
+        enabled: true
+
+#Настройка хоста ns01
+- hosts: ns01
+  become: yes
+  tasks:
+    #Копирование конфигурации DNS-сервера
+    - name: copy named.conf
+      copy:
+        src: ./files/ns01/named.conf
+        dest: /etc/named.conf
+        owner: root
+        group: named
+        mode: 0640
+      #Копирование файлов с настроками зоны.
+      #Будут скопированы все файлы, в имя которых начинается на «named.d»
+    - name: copy zones
+      copy:
+        src: "{{ item }}"
+        dest: /etc/named/
+        owner: root
+        group: named
+        mode: 0660
+      with_fileglob:
+        - ./files/ns01/named.d*
+        - ./files/ns01/named.newdns.lab
+    #Копирование файла resolv.conf
+    - name: copy resolv.conf to the servers
+      copy:
+        src: ./files/ns01/resolv.conf
+        dest: /etc/resolv.conf
+        owner: root
+        group: root
+        mode: 0644
+      notify: named-restart
+    #Изменение прав каталога /etc/named
+    #Права 670, владелец — root, группа — named
+    - name: set /etc/named permissions
+      file:
+        path: /etc/named
+        owner: root
+        group: named
+        mode: 0670
+    #Перезапуск службы Named и добавление её в автозагрузку
+    - name: ensure named is running and enabled
+      service:
+        name: named
+        state: restarted
+        enabled: yes
+  handlers:
+    - name: named-restart
+      service:
+        name: named
+        state: restarted
+
+- hosts: ns02
+  become: yes
+  tasks:
+    - name: copy named.conf
+      copy:
+        src: ./files/ns02/named.conf
+        dest: /etc/named.conf
+        owner: root
+        group: named
+        mode: 0640
+      notify: named-restart
+    - name: copy resolv.conf to the servers
+      copy:
+        src: ./files/ns01/resolv.conf
+        dest: /etc/resolv.conf
+        owner: root
+        group: root
+        mode: 0644
+    - name: set /etc/named permissions
+      file:
+        path: /etc/named
+        owner: root
+        group: named
+        mode: 0670
+    - name: ensure named is running and enabled
+      service:
+        name: named
+        state: restarted
+        enabled: yes
+  handlers:
+    - name: named-restart
+      service:
+        name: named
+        state: restarted
+
+- hosts: client1, client2
+  become: yes
+  tasks:
+    - name: copy resolv.conf to the client
+      copy:
+        src: ./files/client-resolv.conf
+        dest: /etc/resolv.conf
+        owner: root
+        group: root
+        mode: 0644
+    # Копирование конфигруационного файла rndc
+    - name: copy rndc conf file
+      template:
+        src: ./files/rndc.conf.j2
+        dest: /home/vagrant/rndc.conf
+        owner: vagrant
+        group: vagrant
+        mode: 0644
+    # Настройка сообщения при входе на сервер
+    - name: copy motd to the client
+      copy:
+        src: ./files/client-motd
+        dest: /etc/motd
+        owner: root
+        group: root
+        mode: 0644
