@@ -1,0 +1,130 @@
+# -*- mode: ruby -*-
+# vim: set ft=ruby :
+
+
+MACHINES = {
+  :inetRouter => {
+        :box_name => "centos/7",
+        :net => [
+            {adapter: 2, auto_config: false, virtualbox__intnet: "inetRouter"},
+            {adapter: 3, auto_config: false, virtualbox__intnet: "inetRouter"},
+        ]
+  },
+  :centralRouter => {
+        :box_name => "centos/7",
+        :net => [
+            {adapter: 2, auto_config: false, virtualbox__intnet: "inetRouter"},
+            {adapter: 3, auto_config: false, virtualbox__intnet: "inetRouter"},
+            {adapter: 4, auto_config: false, virtualbox__intnet: "router-subnet"},
+            {adapter: 5, auto_config: false, virtualbox__intnet: "router-subnet"}
+        ]
+  },
+  
+  :testRouter1 => {
+        :box_name => "centos/7",
+        :net => [
+            {adapter: 2, auto_config: false, virtualbox__intnet: "router-subnet"},
+            {adapter: 3, auto_config: false, virtualbox__intnet: "test-subnet-vlan100"}
+        ]
+  },
+  :testRouter2 => {
+        :box_name => "centos/7",
+        :net => [
+            {adapter: 2, auto_config: false, virtualbox__intnet: "router-subnet"},
+            {adapter: 3, auto_config: false, virtualbox__intnet: "test-subnet-vlan101"}
+        ]
+  },
+
+  :testClient1 => {
+        :box_name => "centos/7",
+        :net => [
+            {adapter: 2, auto_config: false, virtualbox__intnet: "test-subnet-vlan100"}
+        ]
+  },
+  
+  :testServer1 => {
+        :box_name => "centos/7",
+        :net => [
+          {adapter: 2, auto_config: false, virtualbox__intnet: "test-subnet-vlan100"}
+        ]
+  },
+
+  :testClient2 => {
+        :box_name => "centos/7",
+        :net => [
+            {adapter: 2, auto_config: false, virtualbox__intnet: "test-subnet-vlan101"}
+        ]
+  },
+  
+  :testServer2 => {
+        :box_name => "centos/7",
+        :net => [
+            {adapter: 2, auto_config: false, virtualbox__intnet: "test-subnet-vlan101"}
+        ]
+  },
+}
+
+Vagrant.configure("2") do |config|
+  
+  MACHINES.each do |boxname, boxconfig|
+
+    config.vm.define boxname do |box|
+
+      box.vm.box = boxconfig[:box_name]
+      box.vm.host_name = boxname.to_s
+
+      boxconfig[:net].each do |ipconf|
+        box.vm.network "private_network", **ipconf
+      end
+
+      if boxconfig.key?(:public)
+        box.vm.network "public_network", boxconfig[:public]
+      end
+
+      box.vm.provision "shell", inline: <<-SHELL
+        mkdir -p ~root/.ssh
+        cp ~vagrant/.ssh/auth* ~root/.ssh
+      SHELL
+        
+      case boxname.to_s
+        when "inetRouter"
+            box.vm.provision "ansible" do |ansible|
+              ansible.playbook = "ansible/inetRouter.yaml"
+            end
+        when "centralRouter"
+            box.vm.provision "ansible" do |ansible|
+              ansible.playbook = "ansible/centralRouter.yaml"
+            end
+        when "testRouter1"
+            box.vm.provision "ansible" do |ansible|
+              ansible.playbook = "ansible/testRouter1.yaml"
+            end
+        when "testRouter2"
+            box.vm.provision "ansible" do |ansible|
+              ansible.playbook = "ansible/testRouter2.yaml"
+            end
+        when "testClient1"
+            box.vm.provision "ansible" do |ansible|
+              ansible.playbook = "ansible/testClient1.yaml"
+            end
+        when "testServer1"
+            box.vm.provision "ansible" do |ansible|
+              ansible.playbook = "ansible/testServer1.yaml"
+            end
+        when "testClient2"
+            box.vm.provision "ansible" do |ansible|
+              ansible.playbook = "ansible/testClient2.yaml"
+            end
+        when "testServer2"
+            box.vm.provision "ansible" do |ansible|
+              ansible.playbook = "ansible/testServer2.yaml"
+            end
+
+      end # case boxname.to_s
+
+    end # config.vm.define
+
+  end
+  
+end
+
