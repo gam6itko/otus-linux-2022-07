@@ -1,0 +1,2 @@
+server ansible_host=192.168.60.10
+client ansible_host=192.168.60.11

@@ -1,0 +1,39 @@
+---
+- name: Client play
+  hosts: client
+  become: true
+  tasks:
+    - name: install epel release
+      yum:
+        update_cache: true
+        name: "@idm:DL1"
+        state: present
+
+    - name: install packages
+      yum:
+        name:
+          - mc
+          - ipa-client
+        state: present
+
+    - name: /etc/hosts changes
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+      with_items:
+        - 192.168.60.10 server.ldap.local server
+        - 192.168.60.11 client.ldap.local client
+
+    - name: FreeIPA client setup
+      shell: |
+        ipa-client-install \
+          --unattend \
+          --mkhomedir \
+          --enable-dns-updates \
+          --principal=admin \
+          --password=admin123 \
+          --domain=ldap.local \
+          --server=server.ldap.local \
+          --hostname=client.ldap.local \
+          --realm=LDAP.LOCAL
+

@@ -1,0 +1,49 @@
+---
+- name: server play
+  hosts: server
+  become: true
+  tasks:
+    - name: epel release install
+      yum:
+        update_cache: true
+        name: "@idm:DL1"
+        state: present
+
+    - name: Package install
+      yum:
+        name:
+          - mc
+          - java-atk-wrapper
+          - ipa-common
+          - ipa-server-dns
+          - ipa-server-trust-ad
+          - bind
+          - bind-dyndb-ldap
+        state: present
+
+    - name: Добавление записей в /etc/hosts
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+      with_items:
+         - 192.168.60.10 server.ldap.local
+         - 192.168.60.11 client.ldap.local client
+
+    # выполняется ооооочень долго
+    - name: FreeIPA server setup
+      shell: |
+        ipa-server-install \
+          --unattended \
+          --setup-dns \
+          --hostname=server.ldap.local \
+          --ds-password=admin123 \
+          --admin-password=admin123 \
+          --domain=ldap.local \
+          --realm=LDAP.LOCAL \
+          --mkhomedir \
+          --ssh-trust-dns \
+          --auto-forwarders \
+          --auto-reverse \
+          --no-host-dns \
+          --no-dnssec-validation
+
