@@ -1,6 +1,6 @@
 # NFS
 
-## задание
+## Задание
 
 - vagrant up должен поднимать 2 виртуалки: сервер и клиент;
 - на сервер должна быть расшарена директория;
@@ -9,7 +9,7 @@
 - требования для NFS: NFSv3 по UDP, включенный firewall.
 - Настроить аутентификацию через KERBEROS (NFSv4)
 
-## решение
+## Решение
 
 Полезная информаци которая помогла:
 - https://www.youtube.com/watch?v=VZIcAY7oyjs&ab_channel=Unixway
@@ -22,19 +22,19 @@
 
 В файле были сделаны изменения. Для обоих машиш настройка сети выглядит так `server.vm.network :private_network, type: "dhcp"`
 
-### убеждаемся что сервис nfs установлен и запущен
+### Убеждаемся что сервис nfs установлен и запущен
 
-Проверяем установлен пакет
+Проверяем установлен пакет.
 ```shell
 yum list nfs-utils
 ```
 
-Если не установлен, то ставим
+Если не установлен, то ставим.
 ```shell
 yum install -y nfs-utils
 ```
 
-проверяем что сервис `nfs-server` запущен
+Проверяем что сервис `nfs-server` запущен.
 ```
 # systemctl status nfs-server
 ● nfs-server.service - NFS server and services
@@ -61,13 +61,12 @@ systemctl enable nfs-server
 
 Aug 23 11:51:39 server systemd[1]: Starting NFS server and services...
 Aug 23 11:51:40 server systemd[1]: Started NFS server and services.
-
 ```
+
 Сервис запущен. Можно двагаться дальше.
 
 
-
-### расшарим дирректорию на сервере
+### Расшарим дирректорию на сервере
 
 ```shell
 vagrant up
@@ -117,7 +116,7 @@ Export list for server:
 
 Ip сервера: 10.0.2.15
 
-#### пытыемся подключиться на клиенте к расшаренной папке
+#### Пытыемся подключиться на клиенте к расшаренной папке
 
 ```shell
 vagrant ssh client
@@ -136,12 +135,12 @@ Export list for 192.168.56.3:
 /var/nfs_share *
 ```
 
-Примонтируем диннекторию
+Примонтируем диннекторию:
 ```shell
 mount -t nfs 192.168.56.3:/var/nfs_share /mnt/nfs_share/
 ```
 
-Проверяем что у нач теперь в папке /mnt/nfs_share/
+Проверяем что у нас теперь в папке `/mnt/nfs_share/`:
 ```
 # ls /mnt/nfs_share/
 test_nfs_server.txt
@@ -150,15 +149,15 @@ test_nfs_server.txt
 Мы видим файл `test_nfs_server.txt` а это значит что монтирование папки сервера через NFS просло успешно.
 
 
-#### Добавить на клиенте автомонтирование папки сервера 
+#### Добавить на клиенте автомонтирование папки сервера
 
-Изменим файл `/etc/fstab` и перезагрузим стобы проверитьж
+Изменим файл `/etc/fstab` и перезагрузим стобы проверить:
 ```shell
 echo "192.168.56.3:/var/nfs_share /mnt/nfs_share nfs defaults 0 0" >> /etc/fstab
 reboot
 ```
 
-Проверяем
+Проверяем:
 ```shell
 vagrant ssh client
 # ...
@@ -171,7 +170,7 @@ ls /mnt/nfs_share/
 test_nfs_server.txt
 ```
 
-### в шаре должна быть папка upload с правами на запись;
+### В шаре должна быть папка upload с правами на запись
 
 На сервере добавим папку `/var/nfs_share/upload`
 ```shell
@@ -199,7 +198,7 @@ total 0
 Файл успешно записан.
 
 
-### требования для NFS: NFSv3 по UDP, включенный firewall.
+### Требования для NFS: NFSv3 по UDP, включенный firewall
 
 На клиенте создадим новую папку и примонтируемся к ней по NFS v3
 ```shell
@@ -221,7 +220,7 @@ mount.nfs: requested NFS version or transport protocol is not supported
 mount -t nfs -o vers=3,udp 192.168.56.3:/var/nfs_share /mnt/nfs3_share/
 ```
 
-Проверяем
+Проверяем:
 ```
 # ls -l /mnt/nfs3_share/
 total 0
@@ -246,15 +245,14 @@ echo "/var/nfs_share_secure *(rw,sec=krb5)" > /etc/exports
 exportfs -r
 ```
 
-На клиенте
+На клиенте:
 ```shell
 mkdir /mnt/nfs_share_secure/
 ```
 
-Пробуем примонтировать
+Пробуем примонтировать:
 ```
 # mount -t nfs 192.168.56.3:/var/nfs_share_secure /mnt/nfs_share_secure/
 mount.nfs: Operation not permitted
 ```
 Похоже, что нам нужно правильно аутентифицироваться
-
